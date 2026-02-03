@@ -23,4 +23,5 @@ public enum DataType
     None = 0,
     ObjectTypeA = 1,
     ObjectTypeB = 2,
+    ObjectTypeC = 3,
 }

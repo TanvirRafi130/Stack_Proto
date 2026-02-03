@@ -15,7 +15,10 @@ MonoBehaviour:
   dataList:
   - dataType: 1
     prefab: {fileID: 9086362525109924299, guid: 0e32fa066ecddc14789cc80d11c0d05c, type: 3}
-    maxSpawn: 100
+    maxSpawn: 10000
   - dataType: 2
     prefab: {fileID: 7136550863699973369, guid: f72359fe6cb62ec4eb32ac6b3199ab5d, type: 3}
-    maxSpawn: 100
+    maxSpawn: 10000
+  - dataType: 3
+    prefab: {fileID: 7136550863699973369, guid: 32e4911810fe44e489e0da8e0ee3f637, type: 3}
+    maxSpawn: 10000

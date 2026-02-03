@@ -1,6 +1,9 @@
 
+using System;
+using UnityEngine;
+
 public interface ICollectible
 {
-    public void OnCollectionStart();
-    public void OnCollectionEnd();
+    public Action<GameObject,DataType> onCollectionStart{get; set;}
+
 }
