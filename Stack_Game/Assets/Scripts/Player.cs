@@ -1,90 +1,77 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
-using Unity.VisualScripting;
-using System.Collections;
 
 public class Player : MonoBehaviour, ICollectible, IPlayer
 {
-
     [Header("Player Collection Settings")]
     [SerializeField] Transform collectionPointStart;
     [SerializeField] float backwardOffset = 0.5f;
     [SerializeField] float upwardOffset = 0.5f;
 
-
     public Action<GameObject, DataType> onCollectionStart { get; set; }
 
-    private Dictionary<DataType, Vector3> collectedObjectPosition = new Dictionary<DataType, Vector3>();
-    private Dictionary<DataType, Stack<GameObject>> collectedObjects = new Dictionary<DataType, Stack<GameObject>>();
+    // Actual collected objects
+    private Dictionary<DataType, Stack<GameObject>> collectedObjects = new();
+
+    // Permanent slot booking
+    private Dictionary<DataType, int> slotIndexByType = new();
+    private int nextSlotIndex = 0;
 
     IRecycle currentCollector;
     DataType collectorType = DataType.None;
     bool shouldSendPacket = false;
 
-    // Start is called before the first frame update
     void Start()
     {
         onCollectionStart += Collect;
     }
 
-
-
-
+    // -------------------- COLLECTION --------------------
 
     void Collect(GameObject obj, DataType type)
     {
+        // Create stack if first time
         if (!collectedObjects.ContainsKey(type))
         {
             collectedObjects[type] = new Stack<GameObject>();
+
+            // Book permanent slot
+            if (!slotIndexByType.ContainsKey(type))
+            {
+                slotIndexByType[type] = nextSlotIndex++;
+            }
         }
 
         collectedObjects[type].Push(obj);
 
-        if (!collectedObjectPosition.ContainsKey(type))
-        {
-            collectedObjectPosition[type] =
-                collectionPointStart.localPosition + (Vector3.back * collectedObjectPosition.Count * backwardOffset);
-        }
+        obj.transform.SetParent(transform, true);
 
-        Vector3 localPlacement =
-            collectedObjectPosition[type] +
-            (Vector3.up * upwardOffset * collectedObjects[type].Count);
-
-        obj.transform.SetParent(transform, worldPositionStays: true);
-
-        obj.transform.DOLocalJump(localPlacement, 1f, 1, .5f).SetEase(Ease.OutBack)
-        .OnComplete(() =>
-        {
-            obj.transform.DOLocalRotate(Vector3.zero, 0.08f);
-        })
-        ;
-
-        // Recalculate & animate positions of all collected objects
-        //UpdatePositions();
+        UpdatePositions(true);
     }
+
+    // -------------------- RECYCLING --------------------
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent<IRecycle>(out var collectible) && !(collectible is Player))
+        if (other.TryGetComponent<IRecycle>(out var recyclable) && !(recyclable is Player))
         {
-            currentCollector = collectible;
-            collectorType = collectible.dataType;
+            currentCollector = recyclable;
+            collectorType = recyclable.dataType;
             shouldSendPacket = true;
             StartCoroutine(StartSendingPacket());
-            // collectible.onCollectionStart?.Invoke(other.gameObject, DataType.Packet);
         }
-
     }
+
     void OnTriggerExit(Collider other)
     {
-        if (other.TryGetComponent<IRecycle>(out var collectible) && !(collectible is Player))
+        if (other.TryGetComponent<IRecycle>(out var recyclable) && !(recyclable is Player))
         {
             shouldSendPacket = false;
             currentCollector = null;
             collectorType = DataType.None;
-            StopCoroutine(StartSendingPacket());
         }
     }
 
@@ -92,47 +79,73 @@ public class Player : MonoBehaviour, ICollectible, IPlayer
     {
         while (shouldSendPacket)
         {
-
             yield return new WaitForSeconds(0.15f);
-            if (collectedObjects.ContainsKey(collectorType) && collectedObjects[collectorType].Count > 0)
-            {
-                var obj = collectedObjects[collectorType].Pop();
 
+            if (
+                collectedObjects.ContainsKey(collectorType) &&
+                collectedObjects[collectorType].Count > 0
+            )
+            {
+                
+                var obj = collectedObjects[collectorType].Pop();
                 currentCollector.onCollectionStart?.Invoke(obj, collectorType);
 
+                UpdatePositions(false);
             }
             else
             {
-                collectedObjects.Remove(collectorType);
-                collectedObjectPosition.Remove(collectorType);
-                UpdatePositions();
                 yield break;
             }
-
         }
     }
 
+    // -------------------- POSITION LOGIC --------------------
 
-    void UpdatePositions()
+    void UpdatePositions(bool instantJump)
     {
-        // Compute base positions for each DataType 
-        var keys = new List<DataType>(collectedObjectPosition.Keys);
-        int count = keys.Count;
-        for (int i = 0; i < count; i++)
+        // Sort all DataTypes by their permanent slot index
+        var orderedTypes = new List<DataType>(slotIndexByType.Keys);
+        orderedTypes.Sort((a, b) => slotIndexByType[a].CompareTo(slotIndexByType[b]));
+
+        int visualIndex = 0;
+
+        foreach (var type in orderedTypes)
         {
-            var newPos =
-                collectedObjectPosition[keys[i]] =
-                    collectionPointStart.localPosition + (Vector3.back * i * backwardOffset);
+            // Skip empty stacks (but slot stays reserved)
+            if (!collectedObjects.ContainsKey(type) || collectedObjects[type].Count == 0)
+                continue;
 
+            Vector3 basePos =
+                collectionPointStart.localPosition +
+                Vector3.back * visualIndex * backwardOffset;
 
-            foreach (var item in collectedObjects[keys[i]])
+            int height = 0;
+            foreach (var item in collectedObjects[type])
             {
-                newPos.y = item.transform.localPosition.y;
-                item.transform.DOLocalMove(newPos, 0.3f).SetEase(Ease.OutBack);
+                Vector3 targetPos =
+                    basePos + Vector3.up * upwardOffset * (++height);
+
+                if (instantJump)
+                {
+                    item.transform.DOLocalJump(targetPos, 1f, 1, 0.5f)
+                        .SetEase(Ease.OutBack)
+                        .OnComplete(() =>
+                        {
+                            item.transform.DOLocalRotate(Vector3.zero, 0.1f);
+                        })
+                        ;
+                }
+                else
+                {
+                    item.transform.DOLocalMove(targetPos, 0.3f)
+                        .SetEase(Ease.OutBack).OnComplete(() =>
+                        {
+                            item.transform.DOLocalRotate(Vector3.zero, 0.1f);
+                        });
+                }
             }
 
+            visualIndex++;
         }
-
-
     }
 }

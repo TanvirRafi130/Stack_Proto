@@ -27,6 +27,10 @@ public class CharacterSwitcher : MonoBehaviour
     {
         // Disable current
         characters[currentIndex].SetActive(false);
+        if(characters[currentIndex].gameObject.transform.parent != null)
+        {
+            characters[currentIndex].gameObject.transform.parent.gameObject.SetActive(false);
+        }
 
         // Move to next
         currentIndex = (currentIndex + 1) % characters.Count;
@@ -38,6 +42,10 @@ public class CharacterSwitcher : MonoBehaviour
     void ActivateCharacter(int index)
     {
         characters[index].SetActive(true);
+        if(characters[index].gameObject.transform.parent != null)
+        {
+            characters[index].gameObject.transform.parent.gameObject.SetActive(true);
+        }
         cineCamera.Follow = characters[index].transform;
         cineCamera.LookAt = characters[index].transform;
     }

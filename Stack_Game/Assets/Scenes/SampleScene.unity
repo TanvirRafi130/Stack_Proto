@@ -3557,8 +3557,8 @@ MonoBehaviour:
   m_StreamingVersion: 20170927
   m_Priority: 10
   m_StandbyUpdate: 2
-  m_LookAt: {fileID: 1792016241}
-  m_Follow: {fileID: 1792016241}
+  m_LookAt: {fileID: 1037860179}
+  m_Follow: {fileID: 1037860179}
   m_Lens:
     FieldOfView: 60.000004
     OrthographicSize: 11
@@ -3586,8 +3586,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1786147831}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.41834712, y: -0.08008007, z: 0.0370593, w: 0.90399086}
-  m_LocalPosition: {x: 25.78, y: 11.13, z: -10.259999}
+  m_LocalRotation: {x: 0.41834715, y: -0.08008011, z: 0.037059315, w: 0.90399086}
+  m_LocalPosition: {x: 1.5, y: 10.05, z: -8.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4059,7 +4059,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1912783061
 Transform:
   m_ObjectHideFlags: 0

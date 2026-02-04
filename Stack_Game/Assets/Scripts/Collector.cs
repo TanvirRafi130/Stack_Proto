@@ -19,6 +19,7 @@ public class Collector : MonoBehaviour , IRecycle
 
     void Collect(GameObject obj, DataType type)
     {
+        obj.transform.DOKill();
         obj.transform.parent = null;
        obj.transform
             .DOLocalMove(transform.localPosition, 0.5f)

@@ -25,6 +25,7 @@ public class PoolManager : MonoBehaviour
     }
     private void Start()
     {
+        Application.targetFrameRate = 60;
         InitializePool();
     }
 
@@ -59,7 +60,7 @@ public class PoolManager : MonoBehaviour
     {
         if (!poolDictionary.TryGetValue(type, out var pool) || pool.Count == 0)
         {
-            Debug.LogWarning($"Pool for {type} is empty or not found!");
+            //Debug.LogWarning($"Pool for {type} is empty or not found!");
             return null;
         }
         var obj = pool.Dequeue();

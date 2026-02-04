@@ -76,3 +76,5 @@ crashlytics-build.properties
 /Stack_Game/.vscode
 /Stack_Game/Library
 /Stack_Game/Temp
+/Stack_Game/Recordings
+/Stack_Game/UserSettings
