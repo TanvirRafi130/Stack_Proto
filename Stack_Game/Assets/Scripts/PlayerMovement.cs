@@ -1,6 +1,5 @@
 using UnityEngine;
 using NaughtyAttributes;
-using UnityEditor.Animations;
 
 public class PlayerMovement : MonoBehaviour
 {
